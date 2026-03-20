@@ -1,0 +1,579 @@
+/* ---------------- GLOBAL ---------------- */
+body {
+  background: #f6f8fc;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+}
+
+/* ---------------- COMMON ---------------- */
+.card {
+  border-radius: 16px;
+  transition: all 0.25s ease;
+  border: none;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+button {
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+/* ---------------- UPLOAD ---------------- */
+.upload-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  padding: 20px;
+}
+
+.upload-drop-zone {
+  border: 2px dashed #d0d7de;
+  border-radius: 14px;
+  background: #fafbfc;
+  transition: 0.3s;
+  position: relative;
+}
+
+.upload-drop-zone:hover {
+  border-color: #6366f1;
+  background: #f8fafc;
+  box-shadow: 0 0 20px rgba(99,102,241,0.2);
+}
+
+.upload-icon {
+  font-size: 45px;
+  animation: floatIcon 2s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+}
+
+.upload-btn {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 12px;
+}
+
+.upload-btn:hover {
+  background: linear-gradient(135deg, #4338ca, #4f46e5);
+}
+
+.file-preview {
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* ---------------- PROGRESS ---------------- */
+.progress {
+  height: 12px;
+  border-radius: 10px;
+}
+
+.progress-bar {
+  transition: width 0.4s ease;
+}
+
+/* ---------------- DASHBOARD ---------------- */
+.dashboard-shell {
+  padding-bottom: 10px;
+}
+
+.dashboard-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.dashboard-panel {
+  border-radius: 20px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.dashboard-badge {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: rgba(37,99,235,0.1);
+}
+
+.dashboard-badge.secondary {
+  color: #7c3aed;
+  background: rgba(124,58,237,0.1);
+}
+
+/* ---------------- CHART / INSIGHT ---------------- */
+.chart-shell,
+.insight-shell {
+  min-height: 320px;
+}
+
+/* ---------------- STATS CARD ---------------- */
+.premium-stats-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  padding: 20px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  border: 1px solid rgba(148,163,184,0.18);
+  box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+  min-height: 160px;
+  transition: all 0.25s ease;
+}
+
+.premium-stats-card:hover {
+  transform: translateY(-6px) scale(1.02);
+}
+
+/* Top colored line */
+.premium-stats-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+}
+
+.accent-low::before {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+}
+
+.accent-medium::before {
+  background: linear-gradient(90deg, #f59e0b, #fde68a);
+}
+
+.accent-high::before {
+  background: linear-gradient(90deg, #ef4444, #fca5a5);
+}
+
+.accent-total::before {
+  background: linear-gradient(90deg, #3b82f6, #93c5fd);
+}
+
+/* Card content */
+.stats-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.stats-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stats-trend .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.stats-title {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.stats-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.stats-subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* Glow */
+.stats-card-glow {
+  position: absolute;
+  right: -25px;
+  bottom: -25px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(59,130,246,0.15), transparent);
+  border-radius: 50%;
+}
+
+/* ---------------- INSIGHT CARD ---------------- */
+.insight-card {
+  background: linear-gradient(135deg, #f8fafc, #ffffff);
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+  transition: 0.2s;
+}
+
+.insight-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+@media (max-width: 768px) {
+  .chart-shell,
+  .insight-shell {
+    min-height: auto;
+  }
+
+  .premium-stats-card {
+    min-height: 140px;
+  }
+}
+/* Sidebar base */
+.sidebar-saas {
+  background: #0f172a;
+}
+
+/* Links */
+.sidebar-link {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  transition: 0.2s;
+}
+
+/* Hover */
+.sidebar-link:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Active highlight */
+.sidebar-link.active {
+  background: linear-gradient(135deg,#4f46e5,#6366f1);
+  color: white;
+  font-weight: 600;
+}
+.btn {
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg,#4f46e5,#6366f1);
+  border: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(99,102,241,0.3);
+}
+/* Search dropdown */
+/* ---------------- SEARCH BAR (FIXED) ---------------- */
+
+.search-container {
+  position: relative;
+  width: 360px;
+}
+
+/* Input */
+.search-input {
+  width: 100%;
+  height: 40px;
+  padding: 8px 12px 8px 38px; /* space for icon */
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.search-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+
+/* Icon FIX */
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+/* ---------------- DROPDOWN (PREMIUM) ---------------- */
+
+.search-dropdown {
+  position: absolute;
+  top: 48px; /* perfectly below input */
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(0,0,0,0.12);
+  border: 1px solid #e5e7eb;
+  z-index: 999;
+  overflow: hidden;
+  animation: dropdownFade 0.2s ease;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Items */
+.search-item {
+  padding: 12px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Hover */
+.search-item:hover {
+  background: #f8fafc;
+}
+
+/* Active (keyboard) */
+.search-item.active {
+  background: #6366f1;
+  color: white;
+}
+
+/* Highlight */
+.highlight {
+  background: #fde68a;
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
+/* Empty */
+.search-empty {
+  padding: 14px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+/* Risk Cards */
+.risk-card {
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border-left: 6px solid;
+  background: white;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+}
+
+/* Colors */
+.risk-card.high {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.risk-card.medium {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.risk-card.low {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+/* Clause text */
+.clause-text {
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+/* Explanation */
+.explanation {
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 6px;
+}
+/* ================= AI LOADER ================= */
+
+.ai-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15,23,42,0.6);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.progress {
+  height: 10px;
+  border-radius: 10px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+.upload-drop-zone.active {
+  border: 2px dashed #6366f1;
+  background: #f8fafc;
+  transition: 0.3s;
+}
+
+.upload-btn {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  font-weight: 600;
+  border: none;
+}
+
+.upload-btn:hover {
+  opacity: 0.95;
+}
+/* 🔥 BACKGROUND BLUR (NOT FULL BLACK) */
+
+/* 🔥 PARTIAL OVERLAY (50% feel) */
+.ai-overlay-partial {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  /* 🔥 LIGHT overlay instead of dark */
+  background: rgba(255, 255, 255, 0.15);
+
+  /* 🔥 REDUCE blur strength */
+  backdrop-filter: blur(3px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+}
+/* MODAL */
+.ai-modal {
+  width: 360px;
+
+  /* slightly solid so it stands out */
+  background: rgba(255,255,255,0.98);
+
+  border-radius: 16px;
+  padding: 28px;
+
+  /* stronger shadow for focus */
+  box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+}
+/* DRAG ACTIVE */
+.upload-drop-zone.active {
+  border: 2px dashed #6366f1;
+  background: #f8fafc;
+}
+
+/* BUTTON */
+.upload-btn {
+  background: linear-gradient(135deg,#6366f1,#4f46e5);
+  color: white;
+}
+/* Typing text */
+.ai-typing {
+  font-size: 14px;
+  color: #374151;
+  min-height: 20px;
+}
+
+/* Blinking cursor */
+.cursor {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+}
+
+/* Step rows */
+.step-row {
+  opacity: 0.4;
+  transition: 0.3s;
+}
+
+/* Active step */
+.step-row.active {
+  opacity: 1;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Spinner animation */
+.step-icon {
+  display: inline-block;
+}
+
+.step-row.active .step-icon {
+  animation: spin 1s linear infinite;
+  color: #6366f1;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
