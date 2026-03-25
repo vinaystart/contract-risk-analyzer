@@ -30,8 +30,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     path("api/contracts/", include("contracts.urls")),
-    path("api/analysis/", include("analysis.urls")),
-    path('api/', include('accounts.urls')),
+    path("api/analysis/", include("analysis.urls")), 
+    path('api/accounts/', include('accounts.urls')),
 ]
 
 # Serve uploaded media files

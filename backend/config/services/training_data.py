@@ -1,46 +1,66 @@
 # services/training_data.py
 
-training_data = [
+import random
 
-    # -----------------------------
-    # HIGH RISK
-    # -----------------------------
-    ("Vendor shall have unlimited liability", "High"),
-    ("Company indemnifies all damages", "High"),
-    ("Termination without notice allowed", "High"),
-    ("Client is liable for all losses", "High"),
-    ("Full responsibility for damages lies with vendor", "High"),
-    ("Party agrees to indemnify against all claims", "High"),
-    ("No limitation of liability is imposed", "High"),
-    ("Service provider bears all legal risks", "High"),
-    ("Agreement may be terminated immediately without notice", "High"),
-    ("Unlimited financial liability applies", "High"),
+training_data = []
 
-    # -----------------------------
-    # MEDIUM RISK
-    # -----------------------------
-    ("Delay may result in penalty", "Medium"),
-    ("Breach of contract may occur", "Medium"),
-    ("Late delivery penalty applicable", "Medium"),
-    ("Failure to deliver may incur charges", "Medium"),
-    ("Minor breach may lead to compensation", "Medium"),
-    ("Delays could result in financial penalties", "Medium"),
-    ("Partial liability applies under certain conditions", "Medium"),
-    ("Non-compliance may result in penalties", "Medium"),
-    ("Service delays may affect payments", "Medium"),
-    ("Moderate risk due to unclear obligations", "Medium"),
-
-    # -----------------------------
-    # LOW RISK
-    # -----------------------------
-    ("Payment within 30 days", "Low"),
-    ("Standard confidentiality clause", "Low"),
-    ("Agreement valid for one year", "Low"),
-    ("Invoice payable within agreed timeline", "Low"),
-    ("Both parties agree to standard terms", "Low"),
-    ("Contract follows industry standards", "Low"),
-    ("No unusual obligations are present", "Low"),
-    ("Standard termination clause applies", "Low"),
-    ("Routine service agreement", "Low"),
-    ("No financial penalties involved", "Low"),
+low = [
+    "follows standard business practices",
+    "includes normal contractual obligations",
+    "has no unusual risks",
+    "defines routine responsibilities",
+    "uses standard payment terms",
+    "complies with applicable laws",
 ]
+
+medium = [
+    "may result in penalties under certain conditions",
+    "has limited liability depending on scenario",
+    "may incur additional charges",
+    "shares responsibility between parties",
+    "includes conditional obligations",
+    "may affect financial outcomes",
+]
+
+high = [
+    "has unlimited liability for all damages",
+    "must compensate for all losses",
+    "bears all financial risks",
+    "accepts full legal responsibility",
+    "has no limitation of liability",
+    "covers all damages including indirect losses",
+]
+
+subjects = [
+    "The vendor", "The client", "The company",
+    "The supplier", "The contractor"
+]
+
+extras = [
+    "as per agreement",
+    "under applicable law",
+    "as outlined in contract",
+    "according to policy",
+    "without limitation",
+    "in all circumstances"
+]
+
+# generate diverse sentences
+def generate(data, label, n):
+    for _ in range(n):
+        s = random.choice(subjects)
+        clause = random.choice(data)
+        extra = random.choice(extras)
+
+        # multiple formats
+        training_data.append((f"{s} {clause} {extra}.", label))
+        training_data.append((f"{clause.capitalize()} by {s.lower()} {extra}.", label))
+        training_data.append((f"{s} {clause}.", label))
+
+# build dataset (~900 samples)
+generate(low, "Low", 100)
+generate(medium, "Medium", 100)
+generate(high, "High", 100)
+
+# shuffle
+random.shuffle(training_data)

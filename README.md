@@ -1,12 +1,12 @@
-# 🚀 AI Contract Risk Analyzer
+#  AI Contract Risk Analyzer
 
-## 📌 Overview
+##  Overview
 
 AI-powered system to analyze legal contracts and detect risky clauses using NLP and Machine Learning.
 
 ---
 
-## 🧠 Features
+##  Features
 
 * Upload contracts (PDF, DOCX, TXT)
 * Clause extraction
@@ -21,7 +21,7 @@ AI-powered system to analyze legal contracts and detect risky clauses using NLP 
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 * Backend: Django + DRF
 * Frontend: React (Vite)
@@ -30,7 +30,7 @@ AI-powered system to analyze legal contracts and detect risky clauses using NLP 
 
 ---
 
-## ▶️ Setup
+##  Setup
 
 ### Backend
 
@@ -51,24 +51,24 @@ npm run dev
 
 ---
 
-## 📊 Architecture
+##  Architecture
 
 Upload → Parse → Extract Clauses → ML Classification → NER → Store → Display
 
 ---
 
-## 🎥 Demo
+##  Demo
 
 (Add your video link here)
 
 ---
 
-## 📷 Screenshots
+##  Screenshots
 
 (Add your screenshots here)
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 Vinay S

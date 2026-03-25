@@ -8,12 +8,21 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponse
 
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+
+# 🔥 EXISTING IMPORTS
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
+# 🔥 NEW IMPORTS (ADDED ONLY)
+from reportlab.lib import colors
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+
 from contracts.models import Contract
 from services.analysis_service import analyze_contract
-from services.ml_model import accuracy
+from services.ml_model import get_model_accuracy
 
 
 # -----------------------------
@@ -37,7 +46,6 @@ def upload_contract(request):
 
         results = analyze_contract(file_path)
 
-        # Normalize result structure
         contract.analysis = [
             {
                 "text": r.get("clause"),
@@ -127,7 +135,7 @@ def contract_list(request):
 
 
 # -----------------------------
-# DOWNLOAD REPORT (PDF)
+# 🔥 UPDATED DOWNLOAD REPORT (SaaS LEVEL)
 # -----------------------------
 @api_view(['GET'])
 def download_report(request, id):
@@ -137,36 +145,205 @@ def download_report(request, id):
     except Contract.DoesNotExist:
         return Response({"error": "Not found"}, status=404)
 
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="report_{id}.pdf"'
 
-    doc = SimpleDocTemplate(response)
+    # -----------------------------
+    # DOCUMENT SETTINGS
+    # -----------------------------
+    doc = SimpleDocTemplate(
+        response,
+        rightMargin=60,
+        leftMargin=60,
+        topMargin=70,
+        bottomMargin=50
+    )
+
     styles = getSampleStyleSheet()
+
+    primary = colors.HexColor("#6C4DF6")
+
+    # -----------------------------
+    # STYLES
+    # -----------------------------
+    title_style = ParagraphStyle(
+        'TitleStyle',
+        parent=styles['Title'],
+        fontSize=18,
+        textColor=primary,
+        spaceAfter=10
+    )
+
+    heading_style = ParagraphStyle(
+        'HeadingStyle',
+        parent=styles['Heading2'],
+        textColor=primary,
+        spaceBefore=14,
+        spaceAfter=6
+    )
+
+    body_style = ParagraphStyle(
+        'BodyStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        leading=15,
+        spaceAfter=6
+    )
 
     elements = []
 
-    # Title
-    elements.append(Paragraph("Contract Risk Report", styles['Title']))
-    elements.append(Spacer(1, 12))
+    data = contract.analysis or []
 
-    for r in (contract.analysis or []):
+    high = [r for r in data if r.get("risk") == "High"]
+    medium = [r for r in data if r.get("risk") == "Medium"]
+    low = [r for r in data if r.get("risk") == "Low"]
 
-        text = r.get("text", "")
-        risk = r.get("risk", "Low")
-        confidence = r.get("confidence", 0.5)
+    total = max(len(data), 1)
 
-        elements.append(
-            Paragraph(
-                f"<b>{risk} Risk ({int(confidence * 100)}%)</b><br/>{text}",
-                styles['Normal']
-            )
-        )
+    high_p = round((len(high)/total)*100, 1)
+    med_p = round((len(medium)/total)*100, 1)
+    low_p = round((len(low)/total)*100, 1)
+
+    # -----------------------------
+    # HEADER
+    # -----------------------------
+    elements.append(Paragraph("Contract Risk Analysis Report", title_style))
+    elements.append(Paragraph(
+        "<font size=9 color=#777777>AI Generated Risk Summary</font>",
+        body_style
+    ))
+    elements.append(Spacer(1, 20))
+
+    # -----------------------------
+    # EXECUTIVE SUMMARY
+    # -----------------------------
+    elements.append(Paragraph("Executive Summary", heading_style))
+
+    elements.append(Paragraph(f"Total Clauses: {len(data)}", body_style))
+    elements.append(Paragraph(f"High Risk: {len(high)} ({high_p}%)", body_style))
+    elements.append(Paragraph(f"Medium Risk: {len(medium)} ({med_p}%)", body_style))
+    elements.append(Paragraph(f"Low Risk: {len(low)} ({low_p}%)", body_style))
+    elements.append(Paragraph(
+        f"Model Accuracy: {round(get_model_accuracy()*100, 2)}%",
+        body_style
+    ))
+
+    elements.append(Spacer(1, 20))
+
+    # -----------------------------
+    # KPI DASHBOARD (LINE STYLE)
+    # -----------------------------
+    def kpi_bar(label, value, color):
+
+        table = Table([
+            [f"{label} ({value}%)"],
+            [""]
+        ], colWidths=[450])
+
+        table.setStyle(TableStyle([
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+
+            # 🔥 ONLY LINE (PRO STYLE)
+            ("LINEBELOW", (0, 1), (0, 1), 4, color),
+
+            ("BOTTOMPADDING", (0, 1), (-1, -1), 8),
+        ]))
+
+        return table
+
+    elements.append(Paragraph("Risk Distribution", heading_style))
+    elements.append(Spacer(1, 10))
+
+    elements.append(kpi_bar("High Risk", high_p, colors.red))
+    elements.append(Spacer(1, 8))
+
+    elements.append(kpi_bar("Medium Risk", med_p, colors.HexColor("#E6B800")))
+    elements.append(Spacer(1, 8))
+
+    elements.append(kpi_bar("Low Risk", low_p, colors.green))
+    elements.append(Spacer(1, 20))
+
+    # -----------------------------
+    # SECTION FUNCTION (LINE STYLE)
+    # -----------------------------
+    def section(title, items, color):
+
+        elements.append(Paragraph(f"<b>{title}</b>", heading_style))
+        elements.append(Spacer(1, 6))
+
+        line = Table([[""]], colWidths=[450])
+        line.setStyle(TableStyle([
+            ("LINEBELOW", (0, 0), (-1, -1), 2, color)
+        ]))
+
+        elements.append(line)
         elements.append(Spacer(1, 10))
 
-    doc.build(elements)
+        if not items:
+            elements.append(Paragraph("No clauses found.", body_style))
+            return
+
+        for i, r in enumerate(items, 1):
+            elements.append(Paragraph(f"<b>{i}. {r.get('text','')}</b>", body_style))
+            elements.append(Paragraph(
+                f"<font color=#777777>Reason: {r.get('explanation','Standard clause')}</font>",
+                body_style
+            ))
+            elements.append(Paragraph(
+                f"<font color=#777777>Confidence Score: {r.get('confidence',0)}%</font>",
+                body_style
+            ))
+            elements.append(Spacer(1, 10))
+
+    # -----------------------------
+    # SECTIONS
+    # -----------------------------
+    section("High Risk Clauses", high, colors.red)
+    section("Medium Risk Clauses", medium, colors.HexColor("#E6B800"))
+    section("Low Risk Clauses", low, colors.green)
+
+    # -----------------------------
+    # INSIGHTS
+    # -----------------------------
+    elements.append(Paragraph("Key Insights", heading_style))
+
+    insights = [
+        "High-risk clauses may lead to financial or legal exposure.",
+        "Termination conditions should be clearly defined.",
+        "Penalty clauses should be reviewed carefully."
+    ]
+
+    for ins in insights:
+        elements.append(Paragraph(f"• {ins}", body_style))
+
+    elements.append(Spacer(1, 20))
+
+    # -----------------------------
+    # FOOTER + WATERMARK
+    # -----------------------------
+    def add_page_elements(canvas, doc):
+
+        canvas.setFont("Helvetica", 8)
+        canvas.drawRightString(550, 20, f"Page {doc.page}")
+
+        canvas.setFont("Helvetica-Bold", 40)
+        canvas.setFillColor(colors.HexColor("#E6E1FF"))
+        canvas.saveState()
+        canvas.translate(300, 400)
+        canvas.rotate(45)
+        canvas.drawCentredString(0, 0, "AI GENERATED REPORT")
+        canvas.restoreState()
+
+    # -----------------------------
+    # BUILD
+    # -----------------------------
+    doc.build(elements, onFirstPage=add_page_elements, onLaterPages=add_page_elements)
 
     return response
-
 
 # -----------------------------
 # ADVANCED ANALYTICS
@@ -205,7 +382,7 @@ def advanced_analytics(request):
         "total_contracts": analyzed_contracts,
         "avg_clause_length": round(avg_length, 2),
         "risk_distribution": dict(risk_counter),
-        "model_accuracy": round(accuracy, 2)
+        "model_accuracy": get_model_accuracy()
     })
 
 
