@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 
 function Auth({ setUser }) {
-
   const navigate = useNavigate();
 
   const [isLogin, setIsLogin] = useState(true);
@@ -18,9 +17,16 @@ function Auth({ setUser }) {
   const [otpVerified, setOtpVerified] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "" });
+  // ✅ Separate loading states
+  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [loadingRegister, setLoadingRegister] = useState(false);
+  const [loadingOtp, setLoadingOtp] = useState(false);
+  const [loadingVerifyOtp, setLoadingVerifyOtp] = useState(false);
 
+  // ⏳ OTP timer
+  const [otpTimer, setOtpTimer] = useState(0);
+
+  const [toast, setToast] = useState({ message: "", type: "" });
   const [passwordMatch, setPasswordMatch] = useState(null);
 
   // ================= TOAST =================
@@ -31,14 +37,21 @@ function Auth({ setUser }) {
 
   // ================= PASSWORD MATCH =================
   useEffect(() => {
-    if (!confirmPassword) {
-      setPasswordMatch(null);
-    } else if (password === confirmPassword) {
-      setPasswordMatch(true);
-    } else {
-      setPasswordMatch(false);
-    }
+    if (!confirmPassword) setPasswordMatch(null);
+    else if (password === confirmPassword) setPasswordMatch(true);
+    else setPasswordMatch(false);
   }, [password, confirmPassword]);
+
+  // ================= OTP TIMER =================
+  useEffect(() => {
+    if (otpTimer <= 0) return;
+
+    const interval = setInterval(() => {
+      setOtpTimer((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpTimer]);
 
   // ================= PASSWORD VALIDATION =================
   const isValidPassword = (pwd) => {
@@ -48,27 +61,29 @@ function Auth({ setUser }) {
   // ================= OTP =================
   const handleOtpChange = (val, i) => {
     if (!/^[0-9]?$/.test(val)) return;
+
     const newOtp = [...otp];
     newOtp[i] = val;
     setOtp(newOtp);
 
     if (val && i < 5) {
-      document.getElementById(`otp-${i + 1}`).focus();
+      document.getElementById(`otp-${i + 1}`)?.focus();
     }
   };
 
   const handleSendOtp = async () => {
     if (!email) return showToast("Enter email", "error");
 
-    setLoading(true);
+    setLoadingOtp(true);
     try {
       await API.post("/accounts/send-otp/", { email });
       setOtpSent(true);
+      setOtpTimer(30); // ⏳ cooldown
       showToast("OTP sent 📩");
     } catch {
       showToast("Failed to send OTP", "error");
     } finally {
-      setLoading(false);
+      setLoadingOtp(false);
     }
   };
 
@@ -76,7 +91,7 @@ function Auth({ setUser }) {
     const finalOtp = otp.join("");
     if (finalOtp.length !== 6) return showToast("Enter full OTP", "error");
 
-    setLoading(true);
+    setLoadingVerifyOtp(true);
     try {
       await API.post("/accounts/verify-otp/", { email, otp: finalOtp });
       setOtpVerified(true);
@@ -84,7 +99,7 @@ function Auth({ setUser }) {
     } catch {
       showToast("Invalid OTP", "error");
     } finally {
-      setLoading(false);
+      setLoadingVerifyOtp(false);
     }
   };
 
@@ -100,7 +115,7 @@ function Auth({ setUser }) {
     if (password !== confirmPassword)
       return showToast("Passwords do not match", "error");
 
-    setLoading(true);
+    setLoadingRegister(true);
     try {
       await API.post("/accounts/register/", { name, email, password });
       showToast("Account created 🎉");
@@ -108,7 +123,7 @@ function Auth({ setUser }) {
     } catch {
       showToast("Registration failed", "error");
     } finally {
-      setLoading(false);
+      setLoadingRegister(false);
     }
   };
 
@@ -116,7 +131,7 @@ function Auth({ setUser }) {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    setLoading(true);
+    setLoadingLogin(true);
     try {
       const res = await API.post("/accounts/login/", { email, password });
 
@@ -129,11 +144,10 @@ function Auth({ setUser }) {
         setUser(res.data.user);
         navigate("/");
       }, 800);
-
     } catch {
       showToast("Invalid credentials", "error");
     } finally {
-      setLoading(false);
+      setLoadingLogin(false);
     }
   };
 
@@ -159,16 +173,10 @@ function Auth({ setUser }) {
               <form onSubmit={handleLogin}>
                 <input className="form-control mb-3" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
 
-                <input
-                  type="password"
-                  className="form-control mb-3"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <input type="password" className="form-control mb-3" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
 
-                <button className="btn btn-primary w-100">
-                  {loading ? "Logging in..." : "Login"}
+                <button className="btn btn-primary w-100" disabled={loadingLogin}>
+                  {loadingLogin ? "Logging in..." : "Login"}
                 </button>
               </form>
             ) : (
@@ -179,8 +187,17 @@ function Auth({ setUser }) {
                 <input className="form-control mb-2" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
 
                 {!otpVerified && (
-                  <button type="button" className="btn btn-outline-primary w-100 mb-3" onClick={handleSendOtp}>
-                    Verify Email
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary w-100 mb-3"
+                    onClick={handleSendOtp}
+                    disabled={loadingOtp || otpTimer > 0}
+                  >
+                    {otpTimer > 0
+                      ? `Resend in ${otpTimer}s`
+                      : loadingOtp
+                      ? "Sending..."
+                      : "Send OTP"}
                   </button>
                 )}
 
@@ -192,8 +209,13 @@ function Auth({ setUser }) {
                       ))}
                     </div>
 
-                    <button type="button" className="btn btn-success w-100 mb-3" onClick={handleVerifyOtp}>
-                      Verify OTP
+                    <button
+                      type="button"
+                      className="btn btn-success w-100 mb-3"
+                      onClick={handleVerifyOtp}
+                      disabled={loadingVerifyOtp}
+                    >
+                      {loadingVerifyOtp ? "Verifying..." : "Verify OTP"}
                     </button>
                   </>
                 )}
@@ -202,7 +224,6 @@ function Auth({ setUser }) {
 
                 <input type="password" className="form-control mt-3 mb-2" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
 
-                {/* ❌ show ONLY if invalid */}
                 {!isValidPassword(password) && password && (
                   <small className="text-danger">
                     (Min 8 chars, 1 capital, 1 number, 1 special)
@@ -223,7 +244,6 @@ function Auth({ setUser }) {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
 
-                {/* ONLY show match status */}
                 {passwordMatch === true && (
                   <small className="text-success">✔ Passwords match</small>
                 )}
@@ -231,8 +251,8 @@ function Auth({ setUser }) {
                   <small className="text-danger">❌ Passwords do not match</small>
                 )}
 
-                <button className="btn btn-primary w-100 mt-3">
-                  {loading ? "Creating..." : "Sign Up"}
+                <button className="btn btn-primary w-100 mt-3" disabled={loadingRegister}>
+                  {loadingRegister ? "Creating..." : "Sign Up"}
                 </button>
               </form>
             )}
