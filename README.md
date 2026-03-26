@@ -1,4 +1,4 @@
-# 🚀 AI Contract Risk Analyzer
+#  AI Contract Risk Analyzer
 
 ## 📌 Overview
 
@@ -122,7 +122,7 @@ PDF Report Generation
 
 ---
 
-## 📊 Key Highlights
+##  Key Highlights
 
 - Implemented Email OTP Authentication system
 - Built scalable REST APIs using Django REST Framework
@@ -131,19 +131,6 @@ PDF Report Generation
 - Added advanced search and filter functionality
 - Integrated full-stack architecture (React + Django)
 
----
-
-## 📸 Screenshots
-
-(Add screenshots here: Login page, Dashboard, Analysis page, Search & Filter UI)
-
----
-
-## 🎥 Demo
-
-(Add your demo video link here)
-
----
 
 ## 📁 Project Structure
 
