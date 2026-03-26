@@ -152,46 +152,43 @@ def download_report(request, id):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="report_{id}.pdf"'
 
-    # -----------------------------
-    # DOCUMENT SETTINGS
-    # -----------------------------
     doc = SimpleDocTemplate(
         response,
-        rightMargin=60,
-        leftMargin=60,
-        topMargin=70,
+        rightMargin=50,
+        leftMargin=50,
+        topMargin=60,
         bottomMargin=50
     )
 
     styles = getSampleStyleSheet()
 
-    primary = colors.HexColor("#6C4DF6")
+    # 🎨 COLORS
+    HIGH_COLOR = colors.HexColor("#EF4444")
+    MEDIUM_COLOR = colors.HexColor("#F59E0B")
+    LOW_COLOR = colors.HexColor("#22C55E")
+    CARD_BG = colors.HexColor("#F8FAFC")
 
     # -----------------------------
     # STYLES
     # -----------------------------
     title_style = ParagraphStyle(
-        'TitleStyle',
+        'Title',
         parent=styles['Title'],
         fontSize=18,
-        textColor=primary,
         spaceAfter=10
     )
 
     heading_style = ParagraphStyle(
-        'HeadingStyle',
+        'Heading',
         parent=styles['Heading2'],
-        textColor=primary,
-        spaceBefore=14,
-        spaceAfter=6
+        spaceAfter=8
     )
 
     body_style = ParagraphStyle(
-        'BodyStyle',
+        'Body',
         parent=styles['Normal'],
         fontSize=10,
-        leading=15,
-        spaceAfter=6
+        leading=14
     )
 
     elements = []
@@ -212,139 +209,144 @@ def download_report(request, id):
     # HEADER
     # -----------------------------
     elements.append(Paragraph("Contract Risk Analysis Report", title_style))
-    elements.append(Paragraph(
-        "<font size=9 color=#777777>AI Generated Risk Summary</font>",
-        body_style
-    ))
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 15))
 
     # -----------------------------
-    # EXECUTIVE SUMMARY
+    # 🔥 GRADIENT KPI BOX
     # -----------------------------
-    elements.append(Paragraph("Executive Summary", heading_style))
+    def kpi_box(label, value, color):
 
-    elements.append(Paragraph(f"Total Clauses: {len(data)}", body_style))
-    elements.append(Paragraph(f"High Risk: {len(high)} ({high_p}%)", body_style))
-    elements.append(Paragraph(f"Medium Risk: {len(medium)} ({med_p}%)", body_style))
-    elements.append(Paragraph(f"Low Risk: {len(low)} ({low_p}%)", body_style))
-    elements.append(Paragraph(
-        f"Model Accuracy: {round(get_model_accuracy()*100, 2)}%",
-        body_style
-    ))
+        light_color = colors.Color(
+            min(color.red + 0.3, 1),
+            min(color.green + 0.3, 1),
+            min(color.blue + 0.3, 1)
+        )
 
-    elements.append(Spacer(1, 20))
+        box = Table([
+            [label],
+            [f"{value}%"]
+        ], colWidths=[120])
 
-    # -----------------------------
-    # KPI DASHBOARD (LINE STYLE)
-    # -----------------------------
-    def kpi_bar(label, value, color):
+        box.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), light_color),
+            ("BACKGROUND", (0, 1), (-1, 1), color),
 
-        table = Table([
-            [f"{label} ({value}%)"],
-            [""]
-        ], colWidths=[450])
+            ("TEXTCOLOR", (0, 0), (-1, -1), colors.white),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
 
-        table.setStyle(TableStyle([
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+            ("TOPPADDING", (0, 0), (-1, -1), 10),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
 
-            # 🔥 ONLY LINE (PRO STYLE)
-            ("LINEBELOW", (0, 1), (0, 1), 4, color),
-
-            ("BOTTOMPADDING", (0, 1), (-1, -1), 8),
+            ("BOX", (0, 0), (-1, -1), 0, color),
         ]))
 
-        return table
+        return box
 
     elements.append(Paragraph("Risk Distribution", heading_style))
-    elements.append(Spacer(1, 10))
 
-    elements.append(kpi_bar("High Risk", high_p, colors.red))
-    elements.append(Spacer(1, 8))
+    kpi_row = Table([
+        [
+            kpi_box("High", high_p, HIGH_COLOR),
+            kpi_box("Medium", med_p, MEDIUM_COLOR),
+            kpi_box("Low", low_p, LOW_COLOR),
+        ]
+    ])
 
-    elements.append(kpi_bar("Medium Risk", med_p, colors.HexColor("#E6B800")))
-    elements.append(Spacer(1, 8))
-
-    elements.append(kpi_bar("Low Risk", low_p, colors.green))
+    elements.append(kpi_row)
     elements.append(Spacer(1, 20))
 
     # -----------------------------
-    # SECTION FUNCTION (LINE STYLE)
+    # CLAUSE SECTION (CARD STYLE)
     # -----------------------------
     def section(title, items, color):
 
-        elements.append(Paragraph(f"<b>{title}</b>", heading_style))
-        elements.append(Spacer(1, 6))
-
-        line = Table([[""]], colWidths=[450])
-        line.setStyle(TableStyle([
-            ("LINEBELOW", (0, 0), (-1, -1), 2, color)
-        ]))
-
-        elements.append(line)
-        elements.append(Spacer(1, 10))
+        elements.append(Paragraph(title, heading_style))
+        elements.append(Spacer(1, 8))
 
         if not items:
-            elements.append(Paragraph("No clauses found.", body_style))
+            elements.append(Paragraph("No clauses found", body_style))
             return
 
         for i, r in enumerate(items, 1):
-            elements.append(Paragraph(f"<b>{i}. {r.get('text','')}</b>", body_style))
+
+            box = Table([[f"{i}. {r.get('text','')}"]], colWidths=[450])
+
+            box.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), CARD_BG),
+
+                # LEFT COLOR BAR
+                ("LINEBEFORE", (0, 0), (0, -1), 4, color),
+
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ]))
+
+            elements.append(box)
+
             elements.append(Paragraph(
-                f"<font color=#777777>Reason: {r.get('explanation','Standard clause')}</font>",
+                f"Confidence: {round(r.get('confidence',0),2)}%",
                 body_style
             ))
-            elements.append(Paragraph(
-                f"<font color=#777777>Confidence Score: {r.get('confidence',0)}%</font>",
-                body_style
-            ))
+
             elements.append(Spacer(1, 10))
 
-    # -----------------------------
-    # SECTIONS
-    # -----------------------------
-    section("High Risk Clauses", high, colors.red)
-    section("Medium Risk Clauses", medium, colors.HexColor("#E6B800"))
-    section("Low Risk Clauses", low, colors.green)
+    section("High Risk Clauses", high, HIGH_COLOR)
+    section("Medium Risk Clauses", medium, MEDIUM_COLOR)
+    section("Low Risk Clauses", low, LOW_COLOR)
 
     # -----------------------------
     # INSIGHTS
     # -----------------------------
+    elements.append(Spacer(1, 15))
     elements.append(Paragraph("Key Insights", heading_style))
 
     insights = [
-        "High-risk clauses may lead to financial or legal exposure.",
-        "Termination conditions should be clearly defined.",
-        "Penalty clauses should be reviewed carefully."
+        "High-risk clauses may lead to legal exposure.",
+        "Review termination and penalty clauses carefully.",
+        "Ensure confidentiality terms are clearly defined."
     ]
 
     for ins in insights:
         elements.append(Paragraph(f"• {ins}", body_style))
 
-    elements.append(Spacer(1, 20))
-
     # -----------------------------
-    # FOOTER + WATERMARK
+    # 🧾 BORDER + WATERMARK
     # -----------------------------
-    def add_page_elements(canvas, doc):
+    def add_page_design(canvas, doc):
 
-        canvas.setFont("Helvetica", 8)
-        canvas.drawRightString(550, 20, f"Page {doc.page}")
+        width, height = doc.pagesize
 
+        # BORDER
+        canvas.setStrokeColor(colors.HexColor("#CBD5F5"))
+        canvas.setLineWidth(1)
+        canvas.rect(20, 20, width - 40, height - 40)
+
+        # WATERMARK
+        canvas.saveState()
         canvas.setFont("Helvetica-Bold", 40)
         canvas.setFillColor(colors.HexColor("#E6E1FF"))
-        canvas.saveState()
-        canvas.translate(300, 400)
+
+        canvas.translate(width/2, height/2)
         canvas.rotate(45)
         canvas.drawCentredString(0, 0, "AI GENERATED REPORT")
         canvas.restoreState()
 
+        # PAGE NUMBER
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawRightString(width - 30, 20, f"Page {doc.page}")
+
     # -----------------------------
     # BUILD
     # -----------------------------
-    doc.build(elements, onFirstPage=add_page_elements, onLaterPages=add_page_elements)
+    doc.build(
+        elements,
+        onFirstPage=add_page_design,
+        onLaterPages=add_page_design
+    )
 
     return response
-
 # -----------------------------
 # ADVANCED ANALYTICS
 # -----------------------------

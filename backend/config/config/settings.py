@@ -107,10 +107,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # ⚠️ Replace with your real Gmail
-EMAIL_HOST_USER = 'vinaymdy98@gmail.com'
+EMAIL_HOST_USER = 'test@gmail.com'
 
 # ⚠️ Use Google App Password (NOT normal password)
-EMAIL_HOST_PASSWORD = 'uzmbyehimsmbiprh'
+EMAIL_HOST_PASSWORD = 'Add Paascode provided by the gmail'
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
