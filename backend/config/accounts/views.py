@@ -24,20 +24,23 @@ def register(request):
     if not name or not email or not password:
         return Response({"error": "All fields are required"}, status=400)
 
-    try:
-        user = User.objects.get(username=email)
-    except User.DoesNotExist:
-        return Response({"error": "Verify OTP first"}, status=400)
+    # ✅ BLOCK DUPLICATE
+    if User.objects.filter(username=email).exists():
+        return Response({
+            "error": "Account already exists. Please login."
+        }, status=400)
 
-    # ✅ SET password instead of creating again
-    user.set_password(password)
-    user.first_name = name
-    user.save()
+    # ✅ CREATE USER HERE ONLY
+    user = User.objects.create_user(
+        username=email,
+        email=email,
+        password=password,
+        first_name=name
+    )
 
     return Response({
-        "message": "User registered successfully"
+        "message": "Account created successfully"
     })
-
 # ================= LOGIN (PASSWORD) =================
 @api_view(['POST'])
 def login(request):
@@ -74,26 +77,27 @@ def send_otp(request):
     if not email:
         return Response({"error": "Email is required"}, status=400)
 
-    # Optional: delete old OTPs
+    # ✅ BLOCK EXISTING USER
+    if User.objects.filter(username=email).exists():
+        return Response({
+            "error": "Account already exists. Please login."
+        }, status=400)
+
     EmailOTP.objects.filter(email=email).delete()
 
     otp = generate_otp()
 
-    # Save OTP
     EmailOTP.objects.create(email=email, otp=otp)
 
-    # Send Email
     send_mail(
-        'Your Login OTP',
+        'Your OTP',
         f'Your OTP is {otp}',
-        'your_email@gmail.com',  # same as settings
+        'your_email@gmail.com',
         [email],
         fail_silently=False,
     )
 
     return Response({"message": "OTP sent successfully"})
-
-
 # ================= VERIFY OTP (LOGIN) =================
 @api_view(['POST'])
 def verify_otp(request):
@@ -139,4 +143,16 @@ def profile(request):
     return Response({
         "name": user.first_name,
         "email": user.email
+    })
+@api_view(['POST'])
+def check_email(request):
+    email = request.data.get("email")
+
+    if not email:
+        return Response({"error": "Email required"}, status=400)
+
+    exists = User.objects.filter(username=email).exists()
+
+    return Response({
+        "exists": exists
     })

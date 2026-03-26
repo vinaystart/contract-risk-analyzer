@@ -72,20 +72,31 @@ function Auth({ setUser }) {
   };
 
   const handleSendOtp = async () => {
-    if (!email) return showToast("Enter email", "error");
+  if (!email) return showToast("Enter email", "error");
 
-    setLoadingOtp(true);
-    try {
-      await API.post("/accounts/send-otp/", { email });
-      setOtpSent(true);
-      setOtpTimer(30); // ⏳ cooldown
-      showToast("OTP sent 📩");
-    } catch {
-      showToast("Failed to send OTP", "error");
-    } finally {
-      setLoadingOtp(false);
+  setLoadingOtp(true);
+  try {
+    // ✅ CHECK FIRST
+    const check = await API.post("/accounts/check-email/", { email });
+
+    if (check.data.exists) {
+      showToast("Account already exists. Please login 🔐", "error");
+      setIsLogin(true);
+      return;
     }
-  };
+
+    await API.post("/accounts/send-otp/", { email });
+
+    setOtpSent(true);
+    setOtpTimer(30);
+    showToast("OTP sent 📩");
+
+  } catch (err) {
+    showToast(err.response?.data?.error || "Error", "error");
+  } finally {
+    setLoadingOtp(false);
+  }
+};
 
   const handleVerifyOtp = async () => {
     const finalOtp = otp.join("");
